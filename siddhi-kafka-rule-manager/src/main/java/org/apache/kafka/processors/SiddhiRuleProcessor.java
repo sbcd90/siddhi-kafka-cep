@@ -6,7 +6,6 @@ import org.apache.kafka.streams.state.KeyValueStore;
 import org.apache.kafka.utils.SiddhiRuleContract;
 import org.wso2.siddhi.core.ExecutionPlanRuntime;
 import org.wso2.siddhi.core.SiddhiManager;
-import org.wso2.siddhi.core.event.Event;
 import org.wso2.siddhi.core.query.output.callback.QueryCallback;
 import org.wso2.siddhi.core.stream.input.InputHandler;
 
@@ -80,6 +79,6 @@ public class SiddhiRuleProcessor extends AbstractProcessor<String, SiddhiRuleCon
 
   @Override
   public void close() {
-    super.close();
+    // nothing to do
   }
 }

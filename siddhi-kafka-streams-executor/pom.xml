@@ -34,23 +34,8 @@
     <dependencies>
         <dependency>
             <groupId>org.apache.kafka</groupId>
-            <artifactId>kafka-streams</artifactId>
-            <version>${kafka.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.wso2.siddhi</groupId>
-            <artifactId>siddhi-core</artifactId>
-            <version>${siddhi.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.wso2.siddhi</groupId>
-            <artifactId>siddhi-query-api</artifactId>
-            <version>${siddhi.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.wso2.siddhi</groupId>
-            <artifactId>siddhi-query-compiler</artifactId>
-            <version>${siddhi.version}</version>
+            <artifactId>siddhi-kafka-rule-manager</artifactId>
+            <version>1.0-SNAPSHOT</version>
         </dependency>
     </dependencies>
 
