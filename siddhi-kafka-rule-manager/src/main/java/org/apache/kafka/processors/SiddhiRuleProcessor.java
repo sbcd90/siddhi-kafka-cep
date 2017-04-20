@@ -3,6 +3,7 @@ package org.apache.kafka.processors;
 import org.apache.kafka.streams.processor.AbstractProcessor;
 import org.apache.kafka.streams.processor.ProcessorContext;
 import org.apache.kafka.streams.state.KeyValueStore;
+import org.apache.kafka.utils.SiddhiRuleActivationInfo;
 import org.apache.kafka.utils.SiddhiRuleContract;
 import org.wso2.siddhi.core.ExecutionPlanRuntime;
 import org.wso2.siddhi.core.SiddhiManager;
@@ -42,6 +43,7 @@ public class SiddhiRuleProcessor extends AbstractProcessor<String, SiddhiRuleCon
     this.context.schedule(10000);
     siddhiRuleStore = (KeyValueStore<String, String>) this.context.getStateStore("siddhi-rule-store");
     Objects.requireNonNull(siddhiRuleStore, "State store can't be null");
+    siddhiRuleStore.flush();
 
 /*    callback = new QueryCallback() {
       @Override
@@ -72,9 +74,23 @@ public class SiddhiRuleProcessor extends AbstractProcessor<String, SiddhiRuleCon
 
   @Override
   public void process(String s, SiddhiRuleContract siddhiRuleContract) {
-    siddhiRuleStore.put(s, siddhiRuleContract.getRule());
-    context.forward(s, siddhiRuleContract.getRule());
+    siddhiRuleStore.putIfAbsent(streamId, new SiddhiRuleActivationInfo(getRule(siddhiRuleContract), false).toString());
+    context.forward(streamId, siddhiRuleContract);
     context.commit();
+  }
+
+  private String getRule(SiddhiRuleContract siddhiRuleContract) {
+    if (Objects.nonNull(siddhiRuleContract.getDefinitions())) {
+      StringBuilder definitionsStr = new StringBuilder(String.join("\n", siddhiRuleContract.getDefinitions()));
+
+      if (Objects.nonNull(siddhiRuleContract.getSiddhiQuery())) {
+        StringBuilder queryStr = new StringBuilder(siddhiRuleContract.getSiddhiQuery());
+        definitionsStr  = definitionsStr.append("\n").append(queryStr);
+      }
+
+      return definitionsStr.toString();
+    }
+    throw new RuntimeException("The Siddhi Cep Rule cannot be created");
   }
 
   @Override

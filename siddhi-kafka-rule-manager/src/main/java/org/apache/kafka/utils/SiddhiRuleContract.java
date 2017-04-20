@@ -1,19 +1,31 @@
 package org.apache.kafka.utils;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 public class SiddhiRuleContract implements Serializable {
   private static final Long serialVersionUID = 42L;
 
+  @JsonProperty("streamId")
   private String streamId;
 
-  private List<String> definitions;
+  @JsonProperty("definitions")
+  private ArrayList<String> definitions;
 
+  @JsonProperty("siddhiQuery")
   private String siddhiQuery;
 
-  public SiddhiRuleContract(String streamId, List<String> definitions, String siddhiQuery) {
+  public SiddhiRuleContract() {
+
+  }
+
+  public SiddhiRuleContract(String streamId, ArrayList<String> definitions, String siddhiQuery) {
     this.streamId = streamId;
     this.definitions = definitions;
     this.siddhiQuery = siddhiQuery;
@@ -27,11 +39,11 @@ public class SiddhiRuleContract implements Serializable {
     return streamId;
   }
 
-  public void setDefinitions(List<String> definitions) {
+  public void setDefinitions(ArrayList<String> definitions) {
     this.definitions = definitions;
   }
 
-  public List<String> getDefinitions() {
+  public ArrayList<String> getDefinitions() {
     return definitions;
   }
 
@@ -43,17 +55,15 @@ public class SiddhiRuleContract implements Serializable {
     return siddhiQuery;
   }
 
-  public String getRule() {
-    if (Objects.nonNull(definitions)) {
-      StringBuilder definitionsStr = new StringBuilder(String.join("\n", definitions));
-
-      if (Objects.nonNull(siddhiQuery)) {
-        StringBuilder queryStr = new StringBuilder(siddhiQuery);
-        definitionsStr  = definitionsStr.append("\n").append(queryStr);
-      }
-
-      return definitionsStr.toString();
+  @Override
+  public String toString() {
+    try {
+      ObjectMapper mapper = new ObjectMapper();
+      return mapper.writeValueAsString(this);
+    } catch (Exception e) {
+      RuntimeException re = new RuntimeException("Json parsing of Object failed");
+      re.initCause(e);
+      throw re;
     }
-    throw new RuntimeException("The Siddhi Cep Rule cannot be created");
   }
 }

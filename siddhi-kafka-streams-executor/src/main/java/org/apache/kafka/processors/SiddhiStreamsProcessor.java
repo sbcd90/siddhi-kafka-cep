@@ -1,9 +1,11 @@
 package org.apache.kafka.processors;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.streams.processor.AbstractProcessor;
 import org.apache.kafka.streams.processor.ProcessorContext;
 import org.apache.kafka.streams.state.KeyValueIterator;
 import org.apache.kafka.streams.state.KeyValueStore;
+import org.apache.kafka.utils.SiddhiRuleActivationInfo;
 import org.apache.kafka.utils.SiddhiStreamsContract;
 
 import java.util.Objects;
@@ -24,11 +26,24 @@ public class SiddhiStreamsProcessor extends AbstractProcessor<String, SiddhiStre
 
   @Override
   public void process(String s, SiddhiStreamsContract siddhiStreamsContract) {
-    KeyValueIterator<String, String> keyValueIterator = siddhiRuleStore.all();
-    while (keyValueIterator.hasNext()) {
-      context.forward(s, keyValueIterator.next().value);
+    try {
+      ObjectMapper mapper = new ObjectMapper();
+      SiddhiRuleActivationInfo ruleActivationInfo =
+        mapper.readValue(siddhiRuleStore.get(siddhiStreamsContract.getStreamId()), SiddhiRuleActivationInfo.class);
+      System.out.println(ruleActivationInfo.getRule() + " - " + ruleActivationInfo.getIsActivated());
+
+      ruleActivationInfo.setActivated(true);
+
+      siddhiRuleStore.put(siddhiStreamsContract.getStreamId(), ruleActivationInfo.toString());
+
+      SiddhiRuleActivationInfo updatedRuleActivationInfo =
+        mapper.readValue(siddhiRuleStore.get(siddhiStreamsContract.getStreamId()), SiddhiRuleActivationInfo.class);
+      System.out.println(updatedRuleActivationInfo.getRule() + " - " + updatedRuleActivationInfo.getIsActivated());
+      context.forward(s, siddhiStreamsContract);
+      context.commit();
+    } catch (Exception e) {
+      throw new RuntimeException(e);
     }
-    context.commit();
   }
 
   @Override
