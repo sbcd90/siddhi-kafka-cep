@@ -1,50 +1,75 @@
 package org.apache.kafka.processors;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.processor.AbstractProcessor;
 import org.apache.kafka.streams.processor.ProcessorContext;
 import org.apache.kafka.streams.state.KeyValueIterator;
 import org.apache.kafka.streams.state.KeyValueStore;
-import org.apache.kafka.utils.SiddhiRuleActivationInfo;
+import org.apache.kafka.utils.InputHandlerMap;
 import org.apache.kafka.utils.SiddhiStreamsContract;
+import org.wso2.siddhi.core.stream.input.InputHandler;
 
 import java.util.Objects;
 
 public class SiddhiStreamsProcessor extends AbstractProcessor<String, SiddhiStreamsContract> {
 
   private ProcessorContext context;
-  private KeyValueStore<String, String> siddhiRuleStore;
+  private KeyValueStore<String, String> siddhiStreamStore;
+  private InputHandlerMap inputHandlerMap;
+
+  public SiddhiStreamsProcessor(InputHandlerMap inputHandlerMap) {
+    this.inputHandlerMap = inputHandlerMap;
+  }
 
   @Override
   @SuppressWarnings("unchecked")
   public void init(ProcessorContext context) {
     this.context = context;
     this.context.schedule(10000);
-    siddhiRuleStore = (KeyValueStore<String, String>) this.context.getStateStore("siddhi-rule-store");
-    Objects.requireNonNull(siddhiRuleStore, "State store can't be null");
+    siddhiStreamStore = (KeyValueStore<String, String>) this.context.getStateStore("siddhi-stream-store");
+    Objects.requireNonNull(siddhiStreamStore, "State store can't be null");
   }
 
   @Override
   public void process(String s, SiddhiStreamsContract siddhiStreamsContract) {
     try {
-      ObjectMapper mapper = new ObjectMapper();
-      SiddhiRuleActivationInfo ruleActivationInfo =
-        mapper.readValue(siddhiRuleStore.get(siddhiStreamsContract.getStreamId()), SiddhiRuleActivationInfo.class);
-      System.out.println(ruleActivationInfo.getRule() + " - " + ruleActivationInfo.getIsActivated());
+      siddhiStreamStore.put(s, null);
+      InputHandler inputHandler = inputHandlerMap.getInputHandler(siddhiStreamsContract.getStreamId());
+      Objects.requireNonNull(inputHandler);
 
-      ruleActivationInfo.setActivated(true);
+      inputHandler.send(siddhiStreamsContract.getData().toArray());
+      Thread.sleep(500);
 
-      siddhiRuleStore.put(siddhiStreamsContract.getStreamId(), ruleActivationInfo.toString());
+      String recordValue = siddhiStreamStore.get(s);
 
-      SiddhiRuleActivationInfo updatedRuleActivationInfo =
-        mapper.readValue(siddhiRuleStore.get(siddhiStreamsContract.getStreamId()), SiddhiRuleActivationInfo.class);
-      System.out.println(updatedRuleActivationInfo.getRule() + " - " + updatedRuleActivationInfo.getIsActivated());
-      context.forward(s, siddhiStreamsContract);
-      context.commit();
+      if (Objects.nonNull(recordValue)) {
+        context.forward(s, recordValue);
+        context.commit();
+      }
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
   }
+
+/*  @Override
+  public void punctuate(long timestamp) {
+    try {
+      Thread.sleep(500);
+      System.out.println("Trying to write records");
+      KeyValueIterator<String, String> it = siddhiStreamStore.all();
+      System.out.println("Records to write - " + it.hasNext());
+      long currentTime = System.currentTimeMillis();
+
+      while (it.hasNext()) {
+        KeyValue<String, String> record = it.next();
+        context.forward(record.key, record.value);
+      }
+      it.close();
+      context.commit();
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  } */
 
   @Override
   public void close() {

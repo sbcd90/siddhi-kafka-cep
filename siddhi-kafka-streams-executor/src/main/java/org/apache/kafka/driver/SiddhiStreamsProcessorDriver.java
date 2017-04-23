@@ -37,13 +37,15 @@ public class SiddhiStreamsProcessorDriver {
 
     Serde<String> siddhiRuleContractSerde = Serdes.serdeFrom(stringSerializer, stringDeserializer);
 
-    SiddhiRuleProcessor siddhiRuleProcessor = new SiddhiRuleProcessor("siddhiStream1");
+    InputHandlerMap inputHandlerMap = InputHandlerMap.getInstance();
 
-    SiddhiStreamsProcessor siddhiStreamsProcessor = new SiddhiStreamsProcessor();
+    SiddhiRuleProcessor siddhiRuleProcessor = new SiddhiRuleProcessor("siddhiStream1", inputHandlerMap);
+
+    SiddhiStreamsProcessor siddhiStreamsProcessor = new SiddhiStreamsProcessor(inputHandlerMap);
 
     TopologyBuilder builder = new TopologyBuilder();
-    builder.addSource("SOURCE", stringDeserializer, siddhiRuleContractJsonDeserializer, "siddhi-rule-topic9")
-           .addSource("STREAMSOURCE", stringDeserializer, siddhiStreamsContractJsonDeserializer, "siddhi-stream-topic9")
+    builder.addSource("SOURCE", stringDeserializer, siddhiRuleContractJsonDeserializer, "siddhi-rule-topic16")
+           .addSource("STREAMSOURCE", stringDeserializer, siddhiStreamsContractJsonDeserializer, "siddhi-stream-topic16")
            .addProcessor("PROCESS", new ProcessorSupplier() {
              @Override
              public Processor get() {
@@ -56,10 +58,10 @@ public class SiddhiStreamsProcessorDriver {
                return siddhiStreamsProcessor;
              }
            }, "STREAMSOURCE")
-           .addStateStore(Stores.create("siddhi-rule-store").withStringKeys()
+           .addStateStore(Stores.create("siddhi-stream-store").withStringKeys()
             .withValues(siddhiRuleContractSerde).inMemory().maxEntries(100).build(), "PROCESS", "STREAMPROCESS")
-           .addSink("SINK", "siddhi-sink-topic9", stringSerializer, siddhiRuleContractJsonSerializer, "PROCESS")
-           .addSink("STREAMSINK", "siddhi-stream-sink-topic9", stringSerializer, siddhiStreamsContractJsonSerializer, "STREAMPROCESS");
+           .addSink("SINK", "siddhi-sink-topic16", stringSerializer, siddhiRuleContractJsonSerializer, "PROCESS")
+           .addSink("STREAMSINK", "siddhi-stream-sink-topic16", stringSerializer, siddhiStreamsContractJsonSerializer, "STREAMPROCESS");
 
     KafkaStreams streaming = new KafkaStreams(builder, streamsConfig);
     streaming.start();

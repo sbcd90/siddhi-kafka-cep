@@ -4,6 +4,7 @@ import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.utils.SiddhiStreamsContract;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
@@ -11,7 +12,7 @@ import java.util.Properties;
 public class SiddhiStreamsProducer {
 
   public static void main(String[] args) {
-    String topic = "siddhi-stream-topic9";
+    String topic = "siddhi-stream-topic16";
 
     Properties properties = new Properties();
     properties.put("bootstrap.servers", "10.97.136.161:9092");
@@ -21,10 +22,10 @@ public class SiddhiStreamsProducer {
     String key = "key";
 
     String streamId = "siddhiStream1";
-    List<Object> firstData = Arrays.asList("Rectangle", 20.0, 20);
+    List<Object> firstData = Arrays.asList("Rectangle", 19.0, 19);
     SiddhiStreamsContract firstSiddhiStreamsContract = new SiddhiStreamsContract(streamId, firstData);
 
-    List<Object> secondData = Arrays.asList("Square", 21.0, 21);
+    List<Object> secondData = Arrays.asList("Square", 11.0, 21);
     SiddhiStreamsContract secondSiddhiStreamsContract = new SiddhiStreamsContract(streamId, secondData);
 
     byte[] firstValue = firstSiddhiStreamsContract.toString().getBytes();

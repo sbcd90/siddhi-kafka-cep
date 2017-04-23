@@ -1,5 +1,6 @@
 package org.apache.kafka.utils;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.Serializable;
@@ -8,8 +9,10 @@ import java.util.List;
 public class SiddhiStreamsContract implements Serializable {
   private static final Long serialVersionUID = 42L;
 
+  @JsonProperty("streamId")
   private String streamId;
 
+  @JsonProperty("data")
   private List<Object> data;
 
   public SiddhiStreamsContract() {

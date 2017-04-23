@@ -3,37 +3,37 @@ package org.apache.kafka.processors;
 import org.apache.kafka.streams.processor.AbstractProcessor;
 import org.apache.kafka.streams.processor.ProcessorContext;
 import org.apache.kafka.streams.state.KeyValueStore;
-import org.apache.kafka.utils.SiddhiRuleActivationInfo;
+import org.apache.kafka.utils.InputHandlerMap;
 import org.apache.kafka.utils.SiddhiRuleContract;
+import org.apache.kafka.utils.SiddhiStreamsContract;
 import org.wso2.siddhi.core.ExecutionPlanRuntime;
 import org.wso2.siddhi.core.SiddhiManager;
+import org.wso2.siddhi.core.event.Event;
 import org.wso2.siddhi.core.query.output.callback.QueryCallback;
 import org.wso2.siddhi.core.stream.input.InputHandler;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 public class SiddhiRuleProcessor extends AbstractProcessor<String, SiddhiRuleContract> {
 
   private ProcessorContext context;
-  private KeyValueStore<String, String> siddhiRuleStore;
+  private KeyValueStore<String, String> siddhiStreamStore;
 
   private final SiddhiManager siddhiManager;
   private final Map<String, ExecutionPlanRuntime> executionPlanRuntimes;
-  private final Map<String, InputHandler> inputHandlers;
+  private final InputHandlerMap inputHandlerMap;
 
   private final String streamId;
 
   private QueryCallback callback;
 
-  public SiddhiRuleProcessor(String streamId) {
+  public SiddhiRuleProcessor(String streamId, InputHandlerMap inputHandlerMap) {
     this.streamId = streamId;
 
     this.siddhiManager = new SiddhiManager();
 
     this.executionPlanRuntimes = new HashMap<>();
-    this.inputHandlers = new HashMap<>();
+    this.inputHandlerMap = inputHandlerMap;
   }
 
   @Override
@@ -41,40 +41,35 @@ public class SiddhiRuleProcessor extends AbstractProcessor<String, SiddhiRuleCon
   public void init(ProcessorContext context) {
     this.context = context;
     this.context.schedule(10000);
-    siddhiRuleStore = (KeyValueStore<String, String>) this.context.getStateStore("siddhi-rule-store");
-    Objects.requireNonNull(siddhiRuleStore, "State store can't be null");
-    siddhiRuleStore.flush();
-
-/*    callback = new QueryCallback() {
-      @Override
-      public void receive(long l, Event[] events, Event[] events1) {
-        for (Event event: events) {
-          if (event.getData().length == 1) {
-            String rule = event.getData()[0].toString();
-            siddhiRuleStore.put(streamId, rule);
-            context.forward(streamId, rule);
-          }
-        }
-        context.commit();
-      }
-    }; */
+    siddhiStreamStore = (KeyValueStore<String, String>) this.context.getStateStore("siddhi-stream-store");
+    Objects.requireNonNull(siddhiStreamStore, "State store can't be null");
+    siddhiStreamStore.flush();
   }
-
-/*  public void addRule(SiddhiRuleContract siddhiRuleContract) {
-    ExecutionPlanRuntime executionPlanRuntime = siddhiManager.createExecutionPlanRuntime(siddhiRuleContract.getRule());
-
-    executionPlanRuntimes.put(streamId, executionPlanRuntime);
-
-    executionPlanRuntime.addCallback(streamId, callback);
-
-    InputHandler inputHandler = executionPlanRuntime.getInputHandler(streamId);
-    inputHandlers.put(streamId, inputHandler);
-    executionPlanRuntime.start();
-  } */
 
   @Override
   public void process(String s, SiddhiRuleContract siddhiRuleContract) {
-    siddhiRuleStore.putIfAbsent(streamId, new SiddhiRuleActivationInfo(getRule(siddhiRuleContract), false).toString());
+    ExecutionPlanRuntime executionPlanRuntime = siddhiManager.createExecutionPlanRuntime(getRule(siddhiRuleContract));
+
+    executionPlanRuntimes.put(streamId, executionPlanRuntime);
+
+    callback = new QueryCallback() {
+      @Override
+      public void receive(long l, Event[] events, Event[] events1) {
+        for (Event event: events) {
+          SiddhiStreamsContract siddhiStreamsContract = new SiddhiStreamsContract(streamId, Arrays.asList(event.getData()));
+          siddhiStreamStore.put(s, siddhiStreamsContract.toString());
+          System.out.println("Writing record - " + siddhiStreamsContract.toString());
+        }
+      }
+    };
+
+    executionPlanRuntime.addCallback("query1", callback);
+
+    InputHandler inputHandler = executionPlanRuntime.getInputHandler(streamId);
+    inputHandlerMap.addInputHandler(streamId, inputHandler);
+
+    executionPlanRuntime.start();
+
     context.forward(streamId, siddhiRuleContract);
     context.commit();
   }
@@ -95,6 +90,13 @@ public class SiddhiRuleProcessor extends AbstractProcessor<String, SiddhiRuleCon
 
   @Override
   public void close() {
-    // nothing to do
+    try {
+      for (Map.Entry<String, ExecutionPlanRuntime> executionPlanRuntime: executionPlanRuntimes.entrySet()) {
+        executionPlanRuntime.getValue().shutdown();
+      }
+      siddhiManager.shutdown();
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
   }
 }

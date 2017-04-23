@@ -11,7 +11,7 @@ public class SiddhiRuleProducer {
 
   public static void main(String[] args) {
 
-    String topic = "siddhi-rule-topic9";
+    String topic = "siddhi-rule-topic16";
 
     Properties properties = new Properties();
     properties.put("bootstrap.servers", "10.97.136.161:9092");

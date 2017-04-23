@@ -21,7 +21,7 @@ public class SiddhiRuleConsumer {
     properties.put("value.deserializer", "org.apache.kafka.common.serialization.ByteArrayDeserializer");
 
     KafkaConsumer<String, byte[]> consumer = new KafkaConsumer<>(properties);
-    consumer.subscribe(Arrays.asList("siddhi-sink-topic9"));
+    consumer.subscribe(Arrays.asList("siddhi-sink-topic16"));
 
     while (true) {
       ConsumerRecords<String, byte[]> records = consumer.poll(100);

@@ -1,5 +1,6 @@
 package org.apache.kafka.interfaces;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
@@ -11,7 +12,7 @@ import java.util.Properties;
 
 public class SiddhiStreamsConsumer {
 
-  public static void main(String[] args) {
+  public static void main(String[] args) throws Exception {
 
     Properties properties = new Properties();
     properties.put("bootstrap.servers", "10.97.136.161:9092");
@@ -20,13 +21,17 @@ public class SiddhiStreamsConsumer {
     properties.put("value.deserializer", "org.apache.kafka.common.serialization.ByteArrayDeserializer");
 
     KafkaConsumer<String, byte[]> consumer = new KafkaConsumer<>(properties);
-    consumer.subscribe(Arrays.asList("siddhi-stream-sink-topic9"));
+    consumer.subscribe(Arrays.asList("siddhi-stream-sink-topic16"));
 
     while (true) {
       ConsumerRecords<String, byte[]> records = consumer.poll(100);
       for (ConsumerRecord<String, byte[]> record: records) {
+        ObjectMapper mapper = new ObjectMapper();
+
+
         SiddhiStreamsContract streamsContract =
-          new JsonDeserializer<SiddhiStreamsContract>(SiddhiStreamsContract.class).deserialize(record.key(), record.value());
+          new JsonDeserializer<>(SiddhiStreamsContract.class).deserialize(record.key(),
+            mapper.readTree(record.value()).asText().getBytes());
         System.out.println(streamsContract.getData());
       }
     }
