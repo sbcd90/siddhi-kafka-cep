@@ -5,34 +5,53 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.utils.SiddhiRuleContract;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 import java.util.Properties;
 
 public class SiddhiRuleProducer {
 
-  public static void main(String[] args) {
+  private String topic;
+  private String bootstrapServers;
+  private KafkaProducer<String, byte[]> producer;
 
-    String topic = "siddhi-rule-topic16";
+  public SiddhiRuleProducer(String topic, String bootstrapServers) {
+    Objects.requireNonNull(topic, "Topic cannot be null");
+    Objects.requireNonNull(bootstrapServers, "Bootstrap servers should point to valid kafka brokers location");
+    this.topic = topic;
+    this.bootstrapServers = bootstrapServers;
 
+    this.createProducer();
+  }
+
+  private Properties getProperties() {
     Properties properties = new Properties();
-    properties.put("bootstrap.servers", "10.97.136.161:9092");
+    properties.put("bootstrap.servers", bootstrapServers);
     properties.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
     properties.put("value.serializer", "org.apache.kafka.common.serialization.ByteArraySerializer");
+    return properties;
+  }
 
-    String key = "key";
+  private void createProducer() {
+    producer = new KafkaProducer<>(getProperties());
+  }
 
-    ArrayList<String> definitions = new ArrayList<>();
-    String definition = "define stream siddhiStream1 (symbol string, price double, volume long);";
-    definitions.add(definition);
+  private String getKey() {
+    return "key";
+  }
 
-    String siddhiQuery = "@info(name = 'query1') from siddhiStream1[price < 20.0] " +
-      "select symbol, price, volume insert into outputStream";
+  public void createRule(String streamId, ArrayList<String> definitions, String siddhiQuery) {
+    Objects.requireNonNull(streamId, "Stream Id cannot be null");
+    Objects.requireNonNull(definitions, "Siddhi Rule Definitions cannot be null");
+    Objects.requireNonNull(siddhiQuery, "Siddhi Rule Query cannot be null");
 
-    byte[] value = new SiddhiRuleContract("siddhiStream1", definitions, siddhiQuery).toString().getBytes();
+    byte[] rule = new SiddhiRuleContract(streamId, definitions, siddhiQuery).toString().getBytes();
 
-    ProducerRecord<String, byte[]> producerRecord = new ProducerRecord<>(topic, key, value);
-
-    KafkaProducer<String, byte[]> producer = new KafkaProducer<>(properties);
+    ProducerRecord<String, byte[]> producerRecord = new ProducerRecord<>(topic, getKey(), rule);
     producer.send(producerRecord);
+  }
+
+  public void shutdown() {
     producer.close();
   }
 }

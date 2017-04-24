@@ -23,12 +23,9 @@ public class SiddhiRuleProcessor extends AbstractProcessor<String, SiddhiRuleCon
   private final Map<String, ExecutionPlanRuntime> executionPlanRuntimes;
   private final InputHandlerMap inputHandlerMap;
 
-  private final String streamId;
-
   private QueryCallback callback;
 
-  public SiddhiRuleProcessor(String streamId, InputHandlerMap inputHandlerMap) {
-    this.streamId = streamId;
+  public SiddhiRuleProcessor(InputHandlerMap inputHandlerMap) {
 
     this.siddhiManager = new SiddhiManager();
 
@@ -50,13 +47,14 @@ public class SiddhiRuleProcessor extends AbstractProcessor<String, SiddhiRuleCon
   public void process(String s, SiddhiRuleContract siddhiRuleContract) {
     ExecutionPlanRuntime executionPlanRuntime = siddhiManager.createExecutionPlanRuntime(getRule(siddhiRuleContract));
 
-    executionPlanRuntimes.put(streamId, executionPlanRuntime);
+    executionPlanRuntimes.put(siddhiRuleContract.getStreamId(), executionPlanRuntime);
 
     callback = new QueryCallback() {
       @Override
       public void receive(long l, Event[] events, Event[] events1) {
         for (Event event: events) {
-          SiddhiStreamsContract siddhiStreamsContract = new SiddhiStreamsContract(streamId, Arrays.asList(event.getData()));
+          SiddhiStreamsContract siddhiStreamsContract =
+            new SiddhiStreamsContract(siddhiRuleContract.getStreamId(), Arrays.asList(event.getData()));
           siddhiStreamStore.put(s, siddhiStreamsContract.toString());
           System.out.println("Writing record - " + siddhiStreamsContract.toString());
         }
@@ -65,12 +63,12 @@ public class SiddhiRuleProcessor extends AbstractProcessor<String, SiddhiRuleCon
 
     executionPlanRuntime.addCallback("query1", callback);
 
-    InputHandler inputHandler = executionPlanRuntime.getInputHandler(streamId);
-    inputHandlerMap.addInputHandler(streamId, inputHandler);
+    InputHandler inputHandler = executionPlanRuntime.getInputHandler(siddhiRuleContract.getStreamId());
+    inputHandlerMap.addInputHandler(siddhiRuleContract.getStreamId(), inputHandler);
 
     executionPlanRuntime.start();
 
-    context.forward(streamId, siddhiRuleContract);
+    context.forward(siddhiRuleContract.getStreamId(), siddhiRuleContract);
     context.commit();
   }
 

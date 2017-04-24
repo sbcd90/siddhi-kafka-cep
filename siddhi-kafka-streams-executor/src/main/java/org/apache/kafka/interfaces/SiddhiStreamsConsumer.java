@@ -7,32 +7,53 @@ import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.utils.JsonDeserializer;
 import org.apache.kafka.utils.SiddhiStreamsContract;
 
-import java.util.Arrays;
-import java.util.Properties;
+import java.io.IOException;
+import java.util.*;
+import java.util.function.Consumer;
 
 public class SiddhiStreamsConsumer {
+  private String topic;
+  private String bootstrapServers;
+  private KafkaConsumer<String, byte[]> consumer;
 
-  public static void main(String[] args) throws Exception {
+  public SiddhiStreamsConsumer(String topic,
+                               String bootstrapServers) {
+    Objects.requireNonNull(topic, "Topic cannot be null");
+    Objects.requireNonNull(bootstrapServers, "Bootstrap servers should point to valid kafka brokers location");
 
+    this.topic = topic;
+    this.bootstrapServers = bootstrapServers;
+
+    this.createKafkaConsumer();
+  }
+
+  private Properties getProperties() {
     Properties properties = new Properties();
-    properties.put("bootstrap.servers", "10.97.136.161:9092");
+    properties.put("bootstrap.servers", bootstrapServers);
     properties.put("group.id", "test-group");
     properties.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
     properties.put("value.deserializer", "org.apache.kafka.common.serialization.ByteArrayDeserializer");
+    return properties;
+  }
 
-    KafkaConsumer<String, byte[]> consumer = new KafkaConsumer<>(properties);
-    consumer.subscribe(Arrays.asList("siddhi-stream-sink-topic16"));
+  private void createKafkaConsumer() {
+    consumer = new KafkaConsumer<>(getProperties());
+    consumer.subscribe(Arrays.asList(topic));
+  }
+
+  public void consume(int interval, Consumer<Object[]> consumerFunction) throws IOException {
+    List<Object[]> dataList = new ArrayList<>();
 
     while (true) {
-      ConsumerRecords<String, byte[]> records = consumer.poll(100);
+      ConsumerRecords<String, byte[]> records = consumer.poll(interval);
       for (ConsumerRecord<String, byte[]> record: records) {
         ObjectMapper mapper = new ObjectMapper();
 
-
-        SiddhiStreamsContract streamsContract =
+        SiddhiStreamsContract siddhiStreamsContract =
           new JsonDeserializer<>(SiddhiStreamsContract.class).deserialize(record.key(),
             mapper.readTree(record.value()).asText().getBytes());
-        System.out.println(streamsContract.getData());
+
+        consumerFunction.accept(siddhiStreamsContract.getData().toArray());
       }
     }
   }

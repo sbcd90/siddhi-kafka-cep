@@ -4,39 +4,67 @@ import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.utils.SiddhiStreamsContract;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.Properties;
 
 public class SiddhiStreamsProducer {
+  private String topic;
+  private String bootstrapServers;
+  private String streamId;
+  private KafkaProducer<String, byte[]> producer;
 
-  public static void main(String[] args) {
-    String topic = "siddhi-stream-topic16";
 
+  public SiddhiStreamsProducer(String topic,
+                               String bootstrapServers,
+                               String streamId) {
+    Objects.requireNonNull(topic, "Topic cannot be null");
+    Objects.requireNonNull(bootstrapServers, "Bootstrap servers should point to valid kafka brokers location");
+    Objects.requireNonNull(streamId, "Siddhi Stream Id cannot be null");
+
+    this.topic = topic;
+    this.bootstrapServers = bootstrapServers;
+    this.streamId = streamId;
+
+    this.createKafkaProducer();
+  }
+
+  private Properties getProperties() {
     Properties properties = new Properties();
-    properties.put("bootstrap.servers", "10.97.136.161:9092");
+    properties.put("bootstrap.servers", bootstrapServers);
     properties.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
     properties.put("value.serializer", "org.apache.kafka.common.serialization.ByteArraySerializer");
+    return properties;
+  }
 
-    String key = "key";
+  private void createKafkaProducer() {
+    producer = new KafkaProducer<>(getProperties());
+  }
 
-    String streamId = "siddhiStream1";
-    List<Object> firstData = Arrays.asList("Rectangle", 19.0, 19);
-    SiddhiStreamsContract firstSiddhiStreamsContract = new SiddhiStreamsContract(streamId, firstData);
+  private String getKey() {
+    return "key";
+  }
 
-    List<Object> secondData = Arrays.asList("Square", 11.0, 21);
-    SiddhiStreamsContract secondSiddhiStreamsContract = new SiddhiStreamsContract(streamId, secondData);
+  private String getStreamId() {
+    return streamId;
+  }
 
-    byte[] firstValue = firstSiddhiStreamsContract.toString().getBytes();
-    byte[] secondValue = secondSiddhiStreamsContract.toString().getBytes();
+  public void produce(Object... data) {
+    Objects.requireNonNull(data, "Input data cannot be null");
 
-    ProducerRecord<String, byte[]> firstProducerRecord = new ProducerRecord<>(topic, key, firstValue);
-    ProducerRecord<String, byte[]> secondProducerRecord = new ProducerRecord<>(topic, key, secondValue);
+    List<Object> dataList = Arrays.asList(data);
+    SiddhiStreamsContract siddhiStreamsContract = new SiddhiStreamsContract(getStreamId(), dataList);
+    byte[] dataBytes = siddhiStreamsContract.toString().getBytes();
 
-    KafkaProducer<String, byte[]> producer = new KafkaProducer<>(properties);
-    producer.send(firstProducerRecord);
-    producer.send(secondProducerRecord);
+    ProducerRecord<String, byte[]> producerRecord = new ProducerRecord<>(topic, getKey(), dataBytes);
+
+    if (Objects.nonNull(producer)) {
+      producer.send(producerRecord);
+    }
+  }
+
+  public void shutdown() {
     producer.close();
   }
 }
