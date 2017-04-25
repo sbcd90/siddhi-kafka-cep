@@ -15,6 +15,11 @@ public class SiddhiRuleProducer {
   private String bootstrapServers;
   private KafkaProducer<String, byte[]> producer;
 
+  /**
+   * Constructor
+   * @param topic kafka topic to produce a rule
+   * @param bootstrapServers kafka broker coordinates
+   */
   public SiddhiRuleProducer(String topic, String bootstrapServers) {
     Objects.requireNonNull(topic, "Topic cannot be null");
     Objects.requireNonNull(bootstrapServers, "Bootstrap servers should point to valid kafka brokers location");
@@ -40,6 +45,12 @@ public class SiddhiRuleProducer {
     return "key";
   }
 
+  /**
+   * Api to create Siddhi rule
+   * @param streamId siddhi streamId
+   * @param definitions siddhi rule definitions
+   * @param siddhiQuery siddhi rule Query
+   */
   public void createRule(String streamId, ArrayList<String> definitions, String siddhiQuery) {
     Objects.requireNonNull(streamId, "Stream Id cannot be null");
     Objects.requireNonNull(definitions, "Siddhi Rule Definitions cannot be null");
@@ -51,6 +62,9 @@ public class SiddhiRuleProducer {
     producer.send(producerRecord);
   }
 
+  /**
+   * Api to shutdown the producer
+   */
   public void shutdown() {
     producer.close();
   }

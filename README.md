@@ -49,9 +49,10 @@ Architecture
 Api
 ===
 
-- The Java api documentation to create a new Siddhi Rule can be found [here](siddhi-kafka-rule-manager/apidocs/index.html).
+- The Java api documentation to create a new Siddhi Rule can be found [here](siddhi-kafka-rule-manager/src/main/java/org/apache/kafka/interfaces/SiddhiRuleProducer.java).
 
-- The Java api documentation to publish & receive data from the CEP Engine can be found [here](siddhi-kafka-streams-executor/apidocs/index.html).
+- The Java api documentation to publish & receive data from the CEP Engine can be found [here](siddhi-kafka-streams-executor/src/main/java/org/apache/kafka/interfaces/SiddhiStreamsProducer.java)
+  & [here](siddhi-kafka-streams-executor/src/main/java/org/apache/kafka/interfaces/SiddhiStreamsConsumer.java).
 
 Examples
 ========

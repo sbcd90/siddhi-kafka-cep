@@ -15,7 +15,12 @@ public class SiddhiStreamsProducer {
   private String streamId;
   private KafkaProducer<String, byte[]> producer;
 
-
+  /**
+   *
+   * @param topic kafka topic to publish data
+   * @param bootstrapServers kafka broker coordinates
+   * @param streamId siddhi streamId
+   */
   public SiddhiStreamsProducer(String topic,
                                String bootstrapServers,
                                String streamId) {
@@ -50,6 +55,10 @@ public class SiddhiStreamsProducer {
     return streamId;
   }
 
+  /**
+   * Api to produce data
+   * @param data streams of data
+   */
   public void produce(Object... data) {
     Objects.requireNonNull(data, "Input data cannot be null");
 
@@ -64,6 +73,9 @@ public class SiddhiStreamsProducer {
     }
   }
 
+  /**
+   * Api to shutdown the producer
+   */
   public void shutdown() {
     producer.close();
   }

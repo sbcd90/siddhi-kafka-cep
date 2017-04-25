@@ -16,6 +16,11 @@ public class SiddhiStreamsConsumer {
   private String bootstrapServers;
   private KafkaConsumer<String, byte[]> consumer;
 
+  /**
+   * Constructor
+   * @param topic kafka topic to produce
+   * @param bootstrapServers kafka broker coordinates
+   */
   public SiddhiStreamsConsumer(String topic,
                                String bootstrapServers) {
     Objects.requireNonNull(topic, "Topic cannot be null");
@@ -41,6 +46,12 @@ public class SiddhiStreamsConsumer {
     consumer.subscribe(Arrays.asList(topic));
   }
 
+  /**
+   * Api to consume events
+   * @param interval interval to poll events
+   * @param consumerFunction consumer Function to retrieve events
+   * @throws IOException
+   */
   public void consume(int interval, Consumer<Object[]> consumerFunction) throws IOException {
     List<Object[]> dataList = new ArrayList<>();
 
