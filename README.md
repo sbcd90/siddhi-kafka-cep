@@ -17,11 +17,29 @@ Getting started
 
 - Compile the cep engine with maven.
 
-```$xslt
+```
 mvn clean install
 ```
 
 - Start the cep engine with the scripts in the `scripts` directory.
+
+- Create a siddhi rule using the command
+
+```
+java -cp example-1.0-SNAPSHOT-jar-with-dependencies.jar org.apache.kafka.SiddhiRuleGenerator
+```
+
+- Start the event receiver using the command
+
+```
+java -cp example-1.0-SNAPSHOT-jar-with-dependencies.jar org.apache.kafka.SiddhiStreamsDataReceiver
+```
+
+- Publish data to the Engine using the command
+
+```
+java -cp example-1.0-SNAPSHOT-jar-with-dependencies.jar org.apache.kafka.SiddhiStreamDataGenerator
+```
 
 Architecture
 ============
@@ -40,9 +58,6 @@ Examples
 
 - Examples for using the Java api s can be found the [example](example) directory.
 
-```$xslt
-
-```
 
 Using Kafka Producers & Consumers
 =================================
@@ -61,7 +76,7 @@ Rest Api
 
 - Run the maven jetty plugin to start the server.
 
-```$xslt
+```
 mvn jetty:run
 ```
 
@@ -73,7 +88,7 @@ mvn jetty:run
 
   Body:
   
-  ```$xslt
+  ```
    {
    	"topic": "t1",
    	"bootstrapServers": "localhost:9092",
@@ -88,7 +103,7 @@ mvn jetty:run
  
   Body:
   
-  ```$xslt
+  ```
     {
     	"topic": "t1",
     	"bootstrapServers": "localhost:9092",
