@@ -1,0 +1,1 @@
+java -cp siddhi-kafka-streams-executor-1.0-SNAPSHOT-jar-with-dependencies.jar org.apache.kafka.driver.SiddhiStreamsProcessorDriver --bootstrapServers=10.97.136.161:9092 --replicationFactor=1 --ruleSourceTopic=siddhi-rule-topic17 --streamSourceTopic=siddhi-stream-topic17 --ruleSinkTopic=siddhi-sink-topic17 --streamSinkTopic=siddhi-stream-sink-topic17
