@@ -7,8 +7,8 @@ import java.util.Arrays;
 import java.util.function.Consumer;
 
 public class SiddhiStreamsDataReceiver {
-  private static final String topic = "siddhi-stream-sink-topic17";
-  private static final String BOOTSTRAP_SERVERS = "10.97.136.161:9092";
+  private static final String topic = "siddhi-stream-sink-topic18";
+  private static final String BOOTSTRAP_SERVERS = "localhost:9092";
 
   public static void main(String[] args) throws Exception {
 
