@@ -51,26 +51,6 @@ public class SiddhiStreamsProcessor extends AbstractProcessor<String, SiddhiStre
     }
   }
 
-/*  @Override
-  public void punctuate(long timestamp) {
-    try {
-      Thread.sleep(500);
-      System.out.println("Trying to write records");
-      KeyValueIterator<String, String> it = siddhiStreamStore.all();
-      System.out.println("Records to write - " + it.hasNext());
-      long currentTime = System.currentTimeMillis();
-
-      while (it.hasNext()) {
-        KeyValue<String, String> record = it.next();
-        context.forward(record.key, record.value);
-      }
-      it.close();
-      context.commit();
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
-  } */
-
   @Override
   public void close() {
     // nothing to do
