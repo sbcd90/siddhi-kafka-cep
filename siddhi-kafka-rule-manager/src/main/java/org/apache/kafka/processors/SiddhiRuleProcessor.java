@@ -56,7 +56,6 @@ public class SiddhiRuleProcessor extends AbstractProcessor<String, SiddhiRuleCon
           SiddhiStreamsContract siddhiStreamsContract =
             new SiddhiStreamsContract(siddhiRuleContract.getStreamId(), Arrays.asList(event.getData()));
           siddhiStreamStore.put(s, siddhiStreamsContract.toString());
-          System.out.println("Writing record - " + siddhiStreamsContract.toString());
         }
       }
     };

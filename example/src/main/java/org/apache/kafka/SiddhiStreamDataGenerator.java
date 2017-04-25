@@ -6,7 +6,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public class SiddhiStreamDataGenerator {
-  private static final String topic = "siddhi-stream-topic16";
+  private static final String topic = "siddhi-stream-topic17";
   private static final String BOOTSTRAP_SERVERS = "10.97.136.161:9092";
   private static final String streamId = "siddhiStream1";
 
@@ -15,7 +15,7 @@ public class SiddhiStreamDataGenerator {
 
     List<Object> firstData = Arrays.asList("Rectangle", 19.0, 19);
 
-    List<Object> secondData = Arrays.asList("Square", 11.0, 21);
+    List<Object> secondData = Arrays.asList("Square", 21.0, 21);
 
     streamsProducer.produce(firstData.toArray());
     streamsProducer.produce(secondData.toArray());

@@ -5,7 +5,7 @@ import org.apache.kafka.interfaces.SiddhiRuleProducer;
 import java.util.ArrayList;
 
 public class SiddhiRuleGenerator {
-  private static final String topic = "siddhi-rule-topic16";
+  private static final String topic = "siddhi-rule-topic17";
   private static final String BOOTSTRAP_SERVERS = "10.97.136.161:9092";
 
   public static void main(String[] args) {

@@ -115,7 +115,45 @@ public class SiddhiStreamsProcessorDriver {
 
 
   public static void main(String[] args) {
-    SiddhiStreamsProcessorDriver driver = new SiddhiStreamsProcessorDriver("10.97.136.161:9092", 0);
+    if (args.length < 6) {
+      throw new RuntimeException("Please provide the right no. of arguments");
+    }
+
+    String bootstrapServers = null;
+    int replicationFactor = 1;
+    String ruleSourceTopic = null;
+    String streamSourceTopic = null;
+    String ruleSinkTopic = null;
+    String streamSinkTopic = null;
+
+    for (String arg: args) {
+      if (arg.contains("--bootstrapServers=")) {
+        bootstrapServers = arg.split("--bootstrapServers=")[1];
+      }
+      if (arg.contains("--replicationFactor=")) {
+        replicationFactor = Integer.valueOf(arg.split("--replicationFactor=")[1]);
+      }
+      if (arg.contains("--ruleSourceTopic=")) {
+        ruleSourceTopic = arg.split("--ruleSourceTopic=")[1];
+      }
+      if (arg.contains("--streamSourceTopic=")) {
+        streamSourceTopic = arg.split("--streamSourceTopic=")[1];
+      }
+      if (arg.contains("--ruleSinkTopic=")) {
+        ruleSinkTopic = arg.split("--ruleSinkTopic=")[1];
+      }
+      if (arg.contains("--streamSinkTopic=")) {
+        streamSinkTopic = arg.split("--streamSinkTopic=")[1];
+      }
+    }
+
+    Objects.requireNonNull(bootstrapServers, "Bootstrap servers should be provided with --bootstrapServers option");
+    Objects.requireNonNull(ruleSourceTopic, "RuleSourceTopic should be provided with --ruleSourceTopic option");
+    Objects.requireNonNull(streamSourceTopic, "StreamSourceTopic should be provided with --streamSourceTopic option");
+    Objects.requireNonNull(ruleSinkTopic, "RuleSinkTopic should be provided with --ruleSinkTopic option");
+    Objects.requireNonNull(streamSinkTopic, "StreamSinkTopic should be provided with --streamSinkTopic option");
+
+    SiddhiStreamsProcessorDriver driver = new SiddhiStreamsProcessorDriver(bootstrapServers, replicationFactor);
 
     StreamsConfig streamsConfig = driver.getConfig();
 
@@ -123,8 +161,7 @@ public class SiddhiStreamsProcessorDriver {
     driver.fillSiddhiStreamsContractSerializer();
     driver.fillStringSerializer();
 
-    TopologyBuilder builder = driver.createTopology("siddhi-rule-topic16",
-      "siddhi-stream-topic16", "siddhi-sink-topic16", "siddhi-stream-sink-topic16");
+    TopologyBuilder builder = driver.createTopology(ruleSourceTopic, streamSourceTopic, ruleSinkTopic, streamSinkTopic);
 
     KafkaStreams streaming = new KafkaStreams(builder, streamsConfig);
     streaming.start();
