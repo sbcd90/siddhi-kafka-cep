@@ -44,7 +44,7 @@ java -cp example-1.0-SNAPSHOT-jar-with-dependencies.jar org.apache.kafka.SiddhiS
 Architecture
 ============
 
-[Design](CEP_design.PNG)
+![Alt text](CEP_design.PNG?raw=true "Design")
 
 Api
 ===
